@@ -1,0 +1,72 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@theme {
+  /* Base surfaces */
+  --color-surface: #0F1117;
+  --color-surface-50: #1C1F2A;
+  --color-surface-100: #252836;
+  --color-surface-200: #2E3244;
+
+  /* Borders */
+  --color-border: #2A2D3A;
+  --color-border-strong: #3D4155;
+
+  /* Text */
+  --color-ink: #F0F2F8;
+  --color-ink-muted: #8B90A7;
+  --color-ink-subtle: #5A5F78;
+
+  /* Brand */
+  --color-accent: #4F7CFF;
+  --color-accent-hover: #6B94FF;
+  --color-accent-soft: #1A2B5E;
+
+  /* Company category */
+  --color-prime: #22D3A0;
+  --color-prime-soft: #0D3028;
+  --color-average: #F59E0B;
+  --color-average-soft: #2D2000;
+  --color-below: #F43F5E;
+  --color-below-soft: #2D0A12;
+
+  /* Funnel stage colors */
+  --color-stage-registered: #6366F1;
+  --color-stage-shortlisted: #F59E0B;
+  --color-stage-interviewed: #3B82F6;
+  --color-stage-offered: #22D3A0;
+  --color-stage-rejected: #F43F5E;
+
+  /* Typography */
+  --font-display: 'Cabinet Grotesk', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Border radius */
+  --radius-card: 12px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
+  --shadow-modal: 0 24px 48px rgba(0,0,0,0.6);
+  --shadow-glow: 0 0 20px rgba(79,124,255,0.3);
+}
+
+/* Subtle grid background for dashboard pages */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Card hover state */
+.card-interactive {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(79,124,255,0.2);
+}
