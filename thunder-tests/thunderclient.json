@@ -1,0 +1,348 @@
+{
+  "clientName": "Thunder Client",
+  "collectionName": "Placement ERP — Auth Module",
+  "collectionId": "placement-erp-auth-v1",
+  "dateExported": "2026-06-03",
+  "version": "1.2",
+  "folders": [
+    {
+      "id": "folder-register",
+      "name": "1. Registration (DEV only)",
+      "containsRequests": true
+    },
+    {
+      "id": "folder-login",
+      "name": "2. Login",
+      "containsRequests": true
+    },
+    {
+      "id": "folder-session",
+      "name": "3. Session / Refresh",
+      "containsRequests": true
+    },
+    {
+      "id": "folder-logout",
+      "name": "4. Logout",
+      "containsRequests": true
+    },
+    {
+      "id": "folder-rbac",
+      "name": "5. RBAC Guard Tests",
+      "containsRequests": true
+    }
+  ],
+  "requests": [
+    {
+      "id": "req-01",
+      "name": "Register Super Admin",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/register",
+      "method": "POST",
+      "sortNum": 10000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"superadmin@erp.local\",\n  \"password\": \"SuperAdmin@123\",\n  \"role\": \"SUPER_ADMIN\",\n  \"name\": \"Super Admin\",\n  \"department\": \"Administration\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "201" },
+        { "type": "res-body", "custom": "\"success\": true" },
+        { "type": "res-body", "custom": "\"SUPER_ADMIN\"" }
+      ]
+    },
+    {
+      "id": "req-02",
+      "name": "Login as Super Admin (to get session for creating Admin)",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 10500,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"superadmin@erp.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"success\": true" }
+      ]
+    },
+    {
+      "id": "req-03",
+      "name": "Register Admin (requires SUPER_ADMIN session)",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/register",
+      "method": "POST",
+      "sortNum": 11000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"admin@erp.local\",\n  \"password\": \"Admin@123\",\n  \"role\": \"ADMIN\",\n  \"name\": \"Placement Admin\",\n  \"department\": \"Training & Placement Cell\",\n  \"phone\": \"+91-9876543210\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "201" },
+        { "type": "res-body", "custom": "\"ADMIN\"" }
+      ]
+    },
+    {
+      "id": "req-04",
+      "name": "Register Student 1 (requires ADMIN session)",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/register",
+      "method": "POST",
+      "sortNum": 12000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"student1@erp.local\",\n  \"password\": \"Student@123\",\n  \"role\": \"STUDENT\",\n  \"name\": \"Rahul Sharma\",\n  \"rollNumber\": \"CS2021001\",\n  \"branch\": \"Computer Science\",\n  \"cgpa\": 8.5,\n  \"graduationYear\": 2025\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "201" },
+        { "type": "res-body", "custom": "\"STUDENT\"" }
+      ]
+    },
+    {
+      "id": "req-05",
+      "name": "Register Student 2",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/register",
+      "method": "POST",
+      "sortNum": 12100,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"student2@erp.local\",\n  \"password\": \"Student@123\",\n  \"role\": \"STUDENT\",\n  \"name\": \"Priya Patel\",\n  \"rollNumber\": \"EC2021002\",\n  \"branch\": \"Electronics\",\n  \"cgpa\": 9.1,\n  \"graduationYear\": 2025\n}"
+      }
+    },
+    {
+      "id": "req-06",
+      "name": "Register Student 3",
+      "folderId": "folder-register",
+      "url": "{{baseUrl}}/api/v1/auth/register",
+      "method": "POST",
+      "sortNum": 12200,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"student3@erp.local\",\n  \"password\": \"Student@123\",\n  \"role\": \"STUDENT\",\n  \"name\": \"Arjun Singh\",\n  \"rollNumber\": \"ME2021003\",\n  \"branch\": \"Mechanical Engineering\",\n  \"cgpa\": 7.8,\n  \"graduationYear\": 2025\n}"
+      }
+    },
+    {
+      "id": "req-10",
+      "name": "Login — Super Admin",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 20000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"superadmin@erp.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"success\": true" },
+        { "type": "res-body", "custom": "\"SUPER_ADMIN\"" },
+        { "type": "res-header", "custom": "set-cookie" }
+      ]
+    },
+    {
+      "id": "req-11",
+      "name": "Login — Admin",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 21000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"admin@erp.local\",\n  \"password\": \"Admin@123\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"ADMIN\"" }
+      ]
+    },
+    {
+      "id": "req-12",
+      "name": "Login — Student 1",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 22000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"student1@erp.local\",\n  \"password\": \"Student@123\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"STUDENT\"" }
+      ]
+    },
+    {
+      "id": "req-13",
+      "name": "Login — Wrong Password (should return 401)",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 23000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"admin@erp.local\",\n  \"password\": \"wrong-password\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "401" },
+        { "type": "res-body", "custom": "\"success\": false" },
+        { "type": "res-body", "custom": "AUTH_001" }
+      ]
+    },
+    {
+      "id": "req-14",
+      "name": "Login — Non-existent Email (same 401, no info leak)",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 24000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"nobody@erp.local\",\n  \"password\": \"anything\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "401" },
+        { "type": "res-body", "custom": "AUTH_001" }
+      ]
+    },
+    {
+      "id": "req-15",
+      "name": "Login — Missing Fields (should return 400 validation error)",
+      "folderId": "folder-login",
+      "url": "{{baseUrl}}/api/v1/auth/login",
+      "method": "POST",
+      "sortNum": 25000,
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "type": "json",
+        "raw": "{\n  \"email\": \"not-an-email\"\n}"
+      },
+      "tests": [
+        { "type": "res-code", "custom": "400" },
+        { "type": "res-body", "custom": "VAL_001" }
+      ]
+    },
+    {
+      "id": "req-20",
+      "name": "Get Session — Authenticated (after login)",
+      "folderId": "folder-session",
+      "url": "{{baseUrl}}/api/v1/auth/refresh",
+      "method": "GET",
+      "sortNum": 30000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"success\": true" },
+        { "type": "res-body", "custom": "\"id\"" },
+        { "type": "res-body", "custom": "\"role\"" }
+      ]
+    },
+    {
+      "id": "req-21",
+      "name": "Get Session — No Cookie (should return 401)",
+      "folderId": "folder-session",
+      "url": "{{baseUrl}}/api/v1/auth/refresh",
+      "method": "GET",
+      "sortNum": 31000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "401" }
+      ]
+    },
+    {
+      "id": "req-30",
+      "name": "Logout (clears session cookie)",
+      "folderId": "folder-logout",
+      "url": "{{baseUrl}}/api/v1/auth/logout",
+      "method": "POST",
+      "sortNum": 40000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "200" },
+        { "type": "res-body", "custom": "\"success\": true" }
+      ]
+    },
+    {
+      "id": "req-31",
+      "name": "Logout Without Session (should return 401)",
+      "folderId": "folder-logout",
+      "url": "{{baseUrl}}/api/v1/auth/logout",
+      "method": "POST",
+      "sortNum": 41000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "401" }
+      ]
+    },
+    {
+      "id": "req-40",
+      "name": "RBAC: Student tries Admin route (should return 403)",
+      "folderId": "folder-rbac",
+      "url": "{{baseUrl}}/api/v1/admin/dashboard",
+      "method": "GET",
+      "sortNum": 50000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "403" }
+      ]
+    },
+    {
+      "id": "req-41",
+      "name": "RBAC: Admin tries Super Admin route (should return 403)",
+      "folderId": "folder-rbac",
+      "url": "{{baseUrl}}/api/v1/super-admin/dashboard",
+      "method": "GET",
+      "sortNum": 51000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "403" }
+      ]
+    },
+    {
+      "id": "req-42",
+      "name": "RBAC: No session on protected route (should return 401)",
+      "folderId": "folder-rbac",
+      "url": "{{baseUrl}}/api/v1/student/profile",
+      "method": "GET",
+      "sortNum": 52000,
+      "headers": [],
+      "tests": [
+        { "type": "res-code", "custom": "401" }
+      ]
+    }
+  ]
+}

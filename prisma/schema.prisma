@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  STUDENT
+}
+
+enum DriveStatus {
+  UPCOMING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum FunnelStage {
+  REGISTERED
+  SHORTLISTED
+  INTERVIEWED
+  OFFERED
+  NOT_SELECTED
+}
+
+enum CompanyCategory {
+  PRIME
+  AVERAGE
+  BELOW_AVERAGE
+}
+
+enum PlacementType {
+  CAMPUS
+  MANUAL
+  PPO
+}
+
+enum InternshipOutcome {
+  CONVERTED
+  EXTENDED
+  NOT_CONVERTED
+  ONGOING
+}
+
+enum ConsentStatus {
+  PENDING
+  SIGNED
+  DECLINED
+}
+
+model User {
+  id          String    @id @default(cuid())
+  email       String    @unique
+  password    String
+  role        Role
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  adminProfile   Admin?
+  studentProfile Student?
+  activityLogs   ActivityLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+model Admin {
+  id         String  @id @default(cuid())
+  userId     String  @unique
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  phone      String?
+  department String?
+  createdBy  String
+
+  drives           Drive[]
+  consentForms     ConsentForm[]
+  manualPlacements ManualPlacement[]
+}
+
+model Student {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name           String
+  rollNumber     String  @unique
+  branch         String
+  cgpa           Decimal @db.Decimal(4, 2)
+  graduationYear Int
+  phone          String?
+
+  applications      DriveApplication[]
+  internships       Internship[]
+  consentSignatures ConsentSignature[]
+  placements        Placement[]
+
+  @@index([branch])
+  @@index([graduationYear])
+  @@index([cgpa])
+}
+
+model Company {
+  id          String          @id @default(cuid())
+  name        String
+  industry    String
+  hrName      String
+  hrEmail     String
+  hrPhone     String?
+  website     String?
+  category    CompanyCategory
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+
+  drives Drive[]
+
+  @@index([category])
+  @@index([deletedAt])
+}
+
+model Drive {
+  id                  String      @id @default(cuid())
+  companyId           String
+  company             Company     @relation(fields: [companyId], references: [id])
+  adminId             String
+  admin               Admin       @relation(fields: [adminId], references: [id])
+  jobRole             String
+  ctc                 Decimal     @db.Decimal(10, 2)
+  jobLocation         String
+  eligibleBranches    String[]
+  minCgpa             Decimal     @db.Decimal(4, 2)
+  driveDate           DateTime
+  applicationDeadline DateTime?
+  status              DriveStatus @default(UPCOMING)
+  academicYear        String
+  description         String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  applications DriveApplication[]
+  consentForms ConsentForm[]
+
+  @@index([status])
+  @@index([academicYear])
+  @@index([companyId])
+}
+
+model DriveApplication {
+  id        String      @id @default(cuid())
+  driveId   String
+  drive     Drive       @relation(fields: [driveId], references: [id])
+  studentId String
+  student   Student     @relation(fields: [studentId], references: [id])
+  stage     FunnelStage @default(REGISTERED)
+
+  appliedAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  notes           String?
+  offerLetterUrl  String?
+  offerLetterName String?
+  joiningDate     DateTime?
+
+  placement Placement?
+
+  @@unique([driveId, studentId])
+  @@index([stage])
+  @@index([studentId])
+}
+
+model Placement {
+  id            String            @id @default(cuid())
+  studentId     String
+  student       Student           @relation(fields: [studentId], references: [id])
+  type          PlacementType
+  applicationId String?           @unique
+  application   DriveApplication? @relation(fields: [applicationId], references: [id])
+  company       String
+  jobRole       String
+  ctc           Decimal           @db.Decimal(10, 2)
+  joiningDate   DateTime?
+  academicYear  String
+  referralSource String?
+  createdAt     DateTime          @default(now())
+
+  internship Internship?
+
+  @@index([studentId])
+  @@index([academicYear])
+  @@index([type])
+}
+
+model Internship {
+  id             String            @id @default(cuid())
+  studentId      String
+  student        Student           @relation(fields: [studentId], references: [id])
+  placementId    String            @unique
+  placement      Placement         @relation(fields: [placementId], references: [id])
+  startDate      DateTime
+  durationMonths Int
+  endDate        DateTime
+  outcome        InternshipOutcome @default(ONGOING)
+  followUpNotes  String?
+  alertSent      Boolean           @default(false)
+  alertSentAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([endDate])
+  @@index([outcome])
+}
+
+model ConsentForm {
+  id        String    @id @default(cuid())
+  adminId   String
+  admin     Admin     @relation(fields: [adminId], references: [id])
+  driveId   String?
+  drive     Drive?    @relation(fields: [driveId], references: [id])
+  title     String
+  content   String
+  isGeneric Boolean   @default(false)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  signatures ConsentSignature[]
+
+  @@index([driveId])
+  @@index([isActive])
+}
+
+model ConsentSignature {
+  id            String        @id @default(cuid())
+  consentFormId String
+  consentForm   ConsentForm   @relation(fields: [consentFormId], references: [id])
+  studentId     String
+  student       Student       @relation(fields: [studentId], references: [id])
+  status        ConsentStatus @default(PENDING)
+  signatureData String?
+  signatureType String?
+  signedAt      DateTime?
+  pdfUrl        String?
+
+  @@unique([consentFormId, studentId])
+  @@index([status])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  resource   String
+  resourceId String?
+  metadata   Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ManualPlacement {
+  id             String    @id @default(cuid())
+  adminId        String
+  admin          Admin     @relation(fields: [adminId], references: [id])
+  studentId      String
+  company        String
+  jobRole        String
+  ctc            Decimal   @db.Decimal(10, 2)
+  referralSource String
+  joiningDate    DateTime?
+  type           String
+  academicYear   String
+  createdAt      DateTime  @default(now())
+
+  @@index([studentId])
+  @@index([academicYear])
+}

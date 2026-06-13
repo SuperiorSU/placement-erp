@@ -1,0 +1,13 @@
+{
+  "clientName": "Thunder Client",
+  "environmentName": "Placement ERP — Local Dev",
+  "environmentId": "placement-erp-env-local",
+  "dateExported": "2026-06-03",
+  "variables": [
+    {
+      "name": "baseUrl",
+      "value": "http://localhost:3000",
+      "isSecret": false
+    }
+  ]
+}

@@ -10,15 +10,52 @@
 
 | # | Module | Status | Progress |
 |---|--------|--------|----------|
-| 1 | Foundation — Auth, DB schema, middleware, seed | Not started | 0% |
-| 2 | Company Module — CRUD, pagination, filters | Not started | 0% |
+| 1 | Foundation — Auth, DB schema, middleware, seed | Complete | 100% |
+| 2 | Company Module — CRUD, pagination, filters | Complete | 100% |
 | 3 | Drive & Enrollment — funnel, offer letters, bulk enroll | Not started | 0% |
 | 4 | Internship Tracker + Consent Forms | Not started | 0% |
 | 5 | Super Admin Dashboard + Analytics | Not started | 0% |
 | 6 | Student Portal + Excel Reports | Not started | 0% |
 | 7 | Security Hardening + Tests + Deploy | Not started | 0% |
 
-**Overall: 0% complete**
+**Overall: 28% complete**
+
+### Module 1 Complete
+- ✅ Next.js project scaffolded with TypeScript strict
+- ✅ Prisma + PostgreSQL configured (with `@prisma/adapter-pg`)
+- ✅ Complete Prisma schema with all models (User, Admin, Student, Company, Drive, etc.)
+- ✅ NextAuth v5 JWT authentication configured
+- ✅ Auth routes: `/api/v1/auth/login`, `/api/v1/auth/logout`, `/api/v1/auth/refresh`, `/api/v1/auth/register`
+- ✅ Root middleware with RBAC protection
+- ✅ Rate limiting middleware with Upstash Redis (graceful no-op when Redis not configured)
+- ✅ Audit logging middleware
+- ✅ `createRoute` wrapper pattern enforcing auth/RBAC/rate-limit/validation
+- ✅ Standardized `ApiResponse` format (success / error / paginated)
+- ✅ Zod schemas for auth + shared pagination
+- ✅ Auth service: bcrypt 12 rounds, timing-safe login, register with profile creation
+- ✅ Error class hierarchy (`AuthError`, `NotFoundError`, `ConflictError`, etc.)
+- ✅ Database seed: 1 super-admin + 1 admin + 5 students
+- ✅ Auth layout + login page (design-system compliant)
+
+### Module 2 Complete
+- ✅ `src/lib/validations/company.schema.ts` — CreateCompany, UpdateCompany, CompanyListQuery Zod schemas
+- ✅ `src/lib/services/company.service.ts` — list (paginated+filtered), getById, create, update, soft-delete
+- ✅ `src/app/api/v1/admin/companies/route.ts` — GET (list) + POST (create)
+- ✅ `src/app/api/v1/admin/companies/[id]/route.ts` — GET + PATCH + DELETE
+- ✅ `src/app/(dashboard)/layout.tsx` — dashboard shell (sidebar + main)
+- ✅ `src/app/(dashboard)/admin/layout.tsx` — ADMIN role guard
+- ✅ `src/components/layout/Sidebar.tsx` + `NavItem.tsx` + `SignOutButton.tsx`
+- ✅ `src/components/ui/Badge.tsx` — category + status badges
+- ✅ Company list page: server-rendered table, search, category filter, pagination (URL state)
+- ✅ Company create page: validated form, server error mapping
+- ✅ Company detail/edit page: inline edit + drives listing + soft-delete with confirmation dialog
+- ✅ `src/types/api.types.ts` — typed response shapes
+
+### Next Steps (Module 3)
+1. Drive schema (already in Prisma) — Drive service + API routes
+2. Enrollment: single enroll + bulk XLSX upload
+3. Funnel stage management (forward-only transitions)
+4. Offer letter upload to Google Drive
 
 ---
 
@@ -123,3 +160,53 @@ CRON_SECRET
 | `below` | `#F43F5E` | BELOW_AVERAGE badge |
 
 Fonts: `font-display` (Cabinet Grotesk) · `font-body` (DM Sans) · `font-mono` (JetBrains Mono)
+
+---
+
+## Auth Endpoints (Implemented)
+
+| Endpoint | Method | Auth Required | Body | Response |
+|----------|--------|---------------|------|----------|
+| `/api/v1/auth/register` | POST | No | `{ email, password, role }` | `{ success, data: user, timestamp }` |
+| `/api/v1/auth/login` | POST | No | `{ email, password }` | `{ success, data: { token, user }, timestamp }` |
+| `/api/v1/auth/logout` | POST | Yes | - | `{ success, data: null, timestamp }` |
+| `/api/v1/auth/refresh` | POST | Yes | - | `{ success, data: { token }, timestamp }` |
+
+### Testing Instructions
+
+**Thunder Client collection:** `/thunder-tests/Placement-ERP.json`
+
+**Register a test user:**
+```json
+POST http://localhost:3000/api/v1/auth/register
+{
+  "email": "admin@test.com",
+  "password": "SecurePass@123",
+  "role": "ADMIN"
+}
+```
+
+**Login:**
+```json
+POST http://localhost:3000/api/v1/auth/login
+{
+  "email": "admin@test.com",
+  "password": "SecurePass@123"
+}
+```
+
+**Logout (with token):**
+```json
+POST http://localhost:3000/api/v1/auth/logout
+Headers: Authorization: Bearer {token}
+```
+
+---
+
+## Current Known Issues & TODO
+
+- [ ] `DATABASE_URL` must be set in `.env.local` before running migrations/seed
+- [ ] `NEXTAUTH_SECRET` must be set in `.env.local` (run: `openssl rand -base64 32`)
+- [ ] Upstash Redis optional for local dev — rate limiting is a no-op without it
+- [ ] Super Admin and Student portal layouts/pages not yet scaffolded (Module 5 + 6)
+- [ ] `src/app/api/v1/auth/register` is dev-only; production should remove or gate it behind SUPER_ADMIN
