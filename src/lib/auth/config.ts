@@ -47,7 +47,18 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       return session;
     },
   },
-  session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
-  pages:   { signIn: "/login" },
-  secret:  process.env.NEXTAUTH_SECRET,
+  session:   { strategy: "jwt", maxAge: 8 * 60 * 60 },
+  pages:     { signIn: "/login" },
+  secret:    process.env.NEXTAUTH_SECRET,
+  trustHost: true,
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: "lax" as const,
+        path:     "/",
+        secure:   process.env.NODE_ENV === "production",
+      },
+    },
+  },
 });

@@ -11,6 +11,7 @@ export function SignOutButton() {
   async function handleSignOut() {
     setBusy(true);
     await fetch("/api/v1/auth/logout", { method: "POST" });
+    router.refresh();
     router.push("/login");
   }
 

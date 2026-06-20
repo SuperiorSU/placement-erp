@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/v1/cron/internship-alerts",
+      "schedule": "0 9 * * *"
+    }
+  ],
+  "functions": {
+    "src/app/api/**": {
+      "maxDuration": 30
+    }
+  }
+}

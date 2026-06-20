@@ -1,72 +1,82 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
 @import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,600,700,800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
 
 @theme {
-  /* Base surfaces */
-  --color-surface: #0F1117;
-  --color-surface-50: #1C1F2A;
-  --color-surface-100: #252836;
-  --color-surface-200: #2E3244;
+  /* Base surfaces — warm white, not sterile */
+  --color-surface:     #FAFAF8;
+  --color-surface-50:  #F4F3EF;
+  --color-surface-100: #ECEAE4;
+  --color-surface-200: #E0DDD6;
 
   /* Borders */
-  --color-border: #2A2D3A;
-  --color-border-strong: #3D4155;
+  --color-border:       #DDD9D0;
+  --color-border-strong: #C8C4BB;
 
   /* Text */
-  --color-ink: #F0F2F8;
-  --color-ink-muted: #8B90A7;
-  --color-ink-subtle: #5A5F78;
+  --color-ink:        #1A1916;
+  --color-ink-muted:  #6B6760;
+  --color-ink-subtle: #9A9690;
 
   /* Brand */
-  --color-accent: #4F7CFF;
-  --color-accent-hover: #6B94FF;
-  --color-accent-soft: #1A2B5E;
+  --color-accent:       #1D4ED8;
+  --color-accent-hover: #1E40AF;
+  --color-accent-soft:  #EEF2FF;
 
-  /* Company category */
-  --color-prime: #22D3A0;
-  --color-prime-soft: #0D3028;
-  --color-average: #F59E0B;
-  --color-average-soft: #2D2000;
-  --color-below: #F43F5E;
-  --color-below-soft: #2D0A12;
+  /* Company tier */
+  --color-prime:        #0F7B5C;
+  --color-prime-soft:   #ECFDF5;
+  --color-average:      #B45309;
+  --color-average-soft: #FFFBEB;
+  --color-below:        #B91C45;
+  --color-below-soft:   #FFF1F4;
 
   /* Funnel stage colors */
-  --color-stage-registered: #6366F1;
-  --color-stage-shortlisted: #F59E0B;
-  --color-stage-interviewed: #3B82F6;
-  --color-stage-offered: #22D3A0;
-  --color-stage-rejected: #F43F5E;
+  --color-stage-registered:  #4F46E5;
+  --color-stage-shortlisted: #D97706;
+  --color-stage-interviewed: #2563EB;
+  --color-stage-offered:     #0F7B5C;
+  --color-stage-rejected:    #B91C45;
 
   /* Typography */
   --font-display: 'Cabinet Grotesk', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
 
   /* Border radius */
-  --radius-card: 12px;
+  --radius-card: 10px;
   --radius-pill: 9999px;
 
-  /* Shadows */
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04);
-  --shadow-modal: 0 24px 48px rgba(0,0,0,0.6);
-  --shadow-glow: 0 0 20px rgba(79,124,255,0.3);
+  /* Shadows — subtle, warm-tinted */
+  --shadow-card:  0 1px 2px rgba(26,25,22,0.06), 0 0 0 1px rgba(26,25,22,0.07);
+  --shadow-modal: 0 20px 40px rgba(26,25,22,0.18);
+  --shadow-glow:  0 0 16px rgba(29,78,216,0.15);
 }
 
-/* Subtle grid background for dashboard pages */
+/* Modal entrance */
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.97) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+.animate-scale-in {
+  animation: scale-in 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Subtle warm dot grid for dashboard pages */
 .bg-grid {
   background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
+    radial-gradient(circle, rgba(26,25,22,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
-/* Card hover state */
+/* Card hover */
 .card-interactive {
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
 .card-interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5), 0 0 0 1px rgba(79,124,255,0.2);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 10px rgba(26,25,22,0.1),
+    0 0 0 1px rgba(29,78,216,0.15);
 }

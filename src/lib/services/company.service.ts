@@ -1,8 +1,9 @@
-import type { CompanyCategory, Prisma } from "@prisma/client";
+import type { CompanyCategory, DriveStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { logActivity } from "@/lib/middleware/audit.middleware";
 import { ConflictError, NotFoundError } from "@/lib/utils/errors";
 import type { CreateCompanyInput, UpdateCompanyInput, CompanyListQuery } from "@/lib/validations/company.schema";
+import type { CompanyDriveHistoryQuery } from "@/lib/validations/drive.schema";
 
 // ── Return types ──────────────────────────────────────────────────────────────
 
@@ -39,6 +40,23 @@ export type CompanyDetail = {
     academicYear: string;
     _count:      { applications: number };
   }>;
+};
+
+export type CompanyDriveHistoryItem = {
+  id:           string;
+  jobRole:      string;
+  ctc:          number;
+  jobLocation:  string;
+  status:       DriveStatus;
+  driveDate:    Date;
+  academicYear: string;
+  stageCounts: {
+    REGISTERED:   number;
+    SHORTLISTED:  number;
+    INTERVIEWED:  number;
+    OFFERED:      number;
+    NOT_SELECTED: number;
+  };
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -221,6 +239,70 @@ export const CompanyService = {
     });
 
     return this.getById(id);
+  },
+
+  async getDriveHistory(
+    companyId: string,
+    params:    CompanyDriveHistoryQuery
+  ): Promise<{ items: CompanyDriveHistoryItem[]; total: number }> {
+    const company = await prisma.company.findUnique({
+      where:  { id: companyId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!company) throw new NotFoundError("Company not found");
+
+    const where: Prisma.DriveWhereInput = { companyId };
+    if (params.year)   where.academicYear = params.year;
+    if (params.status) where.status       = params.status as DriveStatus;
+
+    const skip = (params.page - 1) * params.limit;
+
+    const [total, rows] = await prisma.$transaction([
+      prisma.drive.count({ where }),
+      prisma.drive.findMany({
+        where,
+        skip,
+        take:    params.limit,
+        orderBy: { driveDate: params.dir },
+        select: {
+          id:           true,
+          jobRole:      true,
+          ctc:          true,
+          jobLocation:  true,
+          status:       true,
+          driveDate:    true,
+          academicYear: true,
+          applications: {
+            select: { stage: true },
+          },
+        },
+      }),
+    ]);
+
+    const items: CompanyDriveHistoryItem[] = rows.map((drive) => {
+      const stageCounts = {
+        REGISTERED:   0,
+        SHORTLISTED:  0,
+        INTERVIEWED:  0,
+        OFFERED:      0,
+        NOT_SELECTED: 0,
+      };
+      for (const app of drive.applications) {
+        stageCounts[app.stage]++;
+      }
+      return {
+        id:           drive.id,
+        jobRole:      drive.jobRole,
+        ctc:          Number(drive.ctc),
+        jobLocation:  drive.jobLocation,
+        status:       drive.status,
+        driveDate:    drive.driveDate,
+        academicYear: drive.academicYear,
+        stageCounts,
+      };
+    });
+
+    return { items, total };
   },
 
   async delete(id: string, actorId: string): Promise<void> {

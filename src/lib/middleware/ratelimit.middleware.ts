@@ -3,61 +3,77 @@ import { ApiResponse, ErrorCodes } from "@/lib/utils/api-response";
 
 export type RateLimitKey = "auth" | "api" | "upload";
 
-// Lazily initialised — only created when Upstash env vars are present
-let rateLimiters: Record<RateLimitKey, import("@upstash/ratelimit").Ratelimit> | null = null;
+// Limits per window
+const LIMITS: Record<RateLimitKey, { max: number; windowSecs: number }> = {
+  auth:   { max: 5,   windowSecs: 900 }, // 5 / 15 min
+  api:    { max: 100, windowSecs: 60  }, // 100 / 1 min
+  upload: { max: 10,  windowSecs: 60  }, // 10 / 1 min
+};
 
-function getRateLimiters() {
-  if (rateLimiters) return rateLimiters;
+// ── Redis singleton ────────────────────────────────────────────────────────────
 
-  const url   = process.env.UPSTASH_REDIS_URL;
-  const token = process.env.UPSTASH_REDIS_TOKEN;
+let redis: import("ioredis").Redis | null = null;
 
-  // Graceful no-op when Redis is not configured (e.g. local dev without Redis)
-  if (!url || !token) return null;
+function getRedis(): import("ioredis").Redis | null {
+  if (redis) return redis;
 
-  const { Ratelimit } = require("@upstash/ratelimit");
-  const { Redis }     = require("@upstash/redis");
+  const url = process.env.REDIS_URL;
+  if (!url) return null;
 
-  const redis = new Redis({ url, token });
+  const { Redis } = require("ioredis") as typeof import("ioredis");
 
-  rateLimiters = {
-    auth: new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, "15 m"),
-      prefix: "rl:auth",
-    }),
-    api: new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(100, "1 m"),
-      prefix: "rl:api",
-    }),
-    upload: new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(10, "1 m"),
-      prefix: "rl:upload",
-    }),
-  };
+  redis = new Redis(url, {
+    maxRetriesPerRequest: 1,
+    connectTimeout:       3000,
+    lazyConnect:          true,
+    enableOfflineQueue:   false,
+  });
 
-  return rateLimiters;
+  redis.on("error", () => {
+    // Swallow connection errors so the app stays up without Redis
+    redis = null;
+  });
+
+  return redis;
 }
 
+// ── Fixed-window counter via INCR + EXPIRE ────────────────────────────────────
+
+async function check(
+  client: import("ioredis").Redis,
+  key:    string,
+  max:    number,
+  window: number
+): Promise<boolean> {
+  const count = await client.incr(key);
+  if (count === 1) await client.expire(key, window);
+  return count <= max;
+}
+
+// ── Public interface ───────────────────────────────────────────────────────────
+
 export async function withRateLimit(
-  _req: NextRequest,
+  _req:       NextRequest,
   limiterKey: RateLimitKey,
   identifier: string
 ): Promise<Response | null> {
-  const limiters = getRateLimiters();
+  const client = getRedis();
+  if (!client) return null; // Graceful no-op when Redis is not configured
 
-  // Skip rate limiting if Redis is not configured
-  if (!limiters) return null;
+  try {
+    const { max, windowSecs } = LIMITS[limiterKey];
+    const key = `rl:${limiterKey}:${identifier}`;
+    const allowed = await check(client, key, max, windowSecs);
 
-  const { success } = await limiters[limiterKey].limit(identifier);
-
-  if (!success) {
-    return Response.json(
-      ApiResponse.error(ErrorCodes.RATE_LIMITED, "Too many requests — please try again later"),
-      { status: 429, headers: { "Retry-After": "60" } }
-    );
+    if (!allowed) {
+      return Response.json(
+        ApiResponse.error(ErrorCodes.RATE_LIMITED, "Too many requests — please try again later"),
+        { status: 429, headers: { "Retry-After": String(windowSecs) } }
+      );
+    }
+  } catch {
+    // If Redis is unreachable, fail open (let the request through)
+    return null;
   }
 
   return null;

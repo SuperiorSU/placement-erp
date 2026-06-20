@@ -116,7 +116,7 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
   const params = await searchParams;
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto">
+    <>
       {/* Page header */}
       <div className="sticky top-0 z-10 bg-surface border-b border-border px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -136,7 +136,9 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
 
       {/* Page content */}
       <div className="px-6 py-6 max-w-7xl mx-auto space-y-4">
-        <CompanyFilters />
+        <Suspense fallback={<div className="h-9 rounded-md bg-surface-100 animate-pulse w-full max-w-xs" />}>
+          <CompanyFilters />
+        </Suspense>
 
         <Suspense
           fallback={
@@ -156,6 +158,6 @@ export default async function CompaniesPage({ searchParams }: PageProps) {
           <CompanyTable searchParams={params} />
         </Suspense>
       </div>
-    </div>
+    </>
   );
 }

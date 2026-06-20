@@ -170,7 +170,7 @@ model DriveApplication {
   placement Placement?
 
   @@unique([driveId, studentId])
-  @@index([stage])
+  @@index([driveId, stage])
   @@index([studentId])
 }
 

@@ -12,7 +12,12 @@ interface NavItemProps {
 
 export function NavItem({ href, icon: Icon, label }: NavItemProps) {
   const pathname = usePathname();
-  const isActive = pathname === href || pathname.startsWith(`${href}/`);
+  // Root dashboard hrefs (/admin, /super-admin, /student) must use exact match
+  // to avoid staying active on every sub-route beneath them.
+  const isDashboardRoot = (href.match(/\//g) ?? []).length === 1;
+  const isActive =
+    pathname === href ||
+    (!isDashboardRoot && pathname.startsWith(`${href}/`));
 
   return (
     <Link

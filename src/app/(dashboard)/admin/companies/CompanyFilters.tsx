@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useCallback, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 
 const CATEGORIES = [
@@ -12,23 +12,34 @@ const CATEGORIES = [
 ];
 
 export function CompanyFilters() {
-  const router      = useRouter();
-  const pathname    = usePathname();
+  const router       = useRouter();
+  const pathname     = usePathname();
   const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
 
-  const setParam = useCallback((key: string, value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    params.delete("page");
-    startTransition(() => {
+  const [search, setSearch] = useState(searchParams.get("q") ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync controlled input if URL changes externally (browser back/forward)
+  useEffect(() => {
+    setSearch(searchParams.get("q") ?? "");
+  }, [searchParams]);
+
+  const pushParam = useCallback(
+    (key: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (value) params.set(key, value); else params.delete(key);
+      params.delete("page");
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
-  }, [router, pathname, searchParams]);
+    },
+    [router, pathname, searchParams]
+  );
+
+  function handleSearchChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value;
+    setSearch(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => pushParam("q", val), 300);
+  }
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
@@ -38,8 +49,8 @@ export function CompanyFilters() {
         <input
           type="search"
           placeholder="Search companies…"
-          defaultValue={searchParams.get("q") ?? ""}
-          onChange={(e) => setParam("q", e.target.value)}
+          value={search}
+          onChange={handleSearchChange}
           className="w-full h-9 pl-8 pr-3 rounded-md text-sm bg-surface-50 border border-border text-ink placeholder:text-ink-subtle focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-80"
           aria-label="Search companies"
         />
@@ -48,7 +59,7 @@ export function CompanyFilters() {
       {/* Category filter */}
       <select
         value={searchParams.get("category") ?? ""}
-        onChange={(e) => setParam("category", e.target.value)}
+        onChange={(e) => pushParam("category", e.target.value)}
         className="h-9 px-3 rounded-md text-sm bg-surface-50 border border-border text-ink focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors duration-80"
         aria-label="Filter by category"
       >
