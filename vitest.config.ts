@@ -11,7 +11,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "lcov"],
       include: ["src/lib/**/*.ts"],
-      exclude: ["src/lib/db/**", "src/lib/google-drive/**", "src/lib/email/**"],
+      exclude: ["src/lib/db/**", "src/lib/storage/**", "src/lib/email/**"],
     },
   },
   resolve: {

@@ -1,3 +1,4 @@
+import { createClient } from "redis";
 import { type NextRequest } from "next/server";
 import { ApiResponse, ErrorCodes } from "@/lib/utils/api-response";
 
@@ -12,27 +13,35 @@ const LIMITS: Record<RateLimitKey, { max: number; windowSecs: number }> = {
 
 // ── Redis singleton ────────────────────────────────────────────────────────────
 
-let redis: import("ioredis").Redis | null = null;
+type RedisClient = ReturnType<typeof createClient>;
 
-function getRedis(): import("ioredis").Redis | null {
-  if (redis) return redis;
+let redis: RedisClient | null = null;
 
-  const url = process.env.REDIS_URL;
-  if (!url) return null;
+async function getRedis(): Promise<RedisClient | null> {
+  const host = process.env.REDIS_HOST;
+  if (!host) return null;
 
-  const { Redis } = require("ioredis") as typeof import("ioredis");
+  if (redis?.isOpen) return redis;
 
-  redis = new Redis(url, {
-    maxRetriesPerRequest: 1,
-    connectTimeout:       3000,
-    lazyConnect:          true,
-    enableOfflineQueue:   false,
+  redis = createClient({
+    username: process.env.REDIS_USERNAME ?? "default",
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+      host,
+      port: Number(process.env.REDIS_PORT ?? 6379),
+    },
   });
 
   redis.on("error", () => {
-    // Swallow connection errors so the app stays up without Redis
     redis = null;
   });
+
+  try {
+    await redis.connect();
+  } catch {
+    redis = null;
+    return null;
+  }
 
   return redis;
 }
@@ -40,7 +49,7 @@ function getRedis(): import("ioredis").Redis | null {
 // ── Fixed-window counter via INCR + EXPIRE ────────────────────────────────────
 
 async function check(
-  client: import("ioredis").Redis,
+  client: RedisClient,
   key:    string,
   max:    number,
   window: number
@@ -57,7 +66,7 @@ export async function withRateLimit(
   limiterKey: RateLimitKey,
   identifier: string
 ): Promise<Response | null> {
-  const client = getRedis();
+  const client = await getRedis();
   if (!client) return null; // Graceful no-op when Redis is not configured
 
   try {

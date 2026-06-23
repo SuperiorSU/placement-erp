@@ -25,13 +25,9 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@types/ioredis": "^4.28.10",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0",
+    "@supabase/supabase-js": "^2.108.2",
     "bcryptjs": "^3.0.3",
     "exceljs": "^4.4.0",
-    "googleapis": "^173.0.0",
-    "ioredis": "^5.11.1",
     "isomorphic-dompurify": "^3.3.0",
     "lucide-react": "^1.21.0",
     "next": "16.2.6",
@@ -41,6 +37,7 @@
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "redis": "^6.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
